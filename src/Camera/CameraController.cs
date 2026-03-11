@@ -14,7 +14,7 @@ public partial class CameraController : Node3D
     [Export] public float PanSpeed = 0.01f;
     [Export] public float MinZoom = 1.0f;
     [Export] public float MaxZoom = 150.0f;
-    [Export] public float FreeMoveSpeed = 20.0f;
+    [Export] public float FreeMoveSpeed = 10.0f;
 
     public CameraMode CurrentMode = CameraMode.Orbital;
 
