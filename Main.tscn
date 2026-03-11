@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://3jt2u80lsajw" path="res://src/Core/GameManager.cs" id="1_gm"]
 [ext_resource type="Script" uid="uid://c4pb4obfvfuws" path="res://src/UI/UIManager.cs" id="2_ui"]
 [ext_resource type="Script" uid="uid://c46wp1en67glj" path="res://src/Camera/CameraController.cs" id="3_cam"]
-[ext_resource type="Script" uid="uid://ddadabyt5xmxt" path="res://src/UI/LabelCam.cs" id="3_fos0i"]
 [ext_resource type="Script" uid="uid://ctjn8lcdf1f57" path="res://src/Core/ModelManager.cs" id="4_mod"]
 
 [sub_resource type="Environment" id="Environment_main"]
@@ -197,13 +196,6 @@ min_value = 1.0
 max_value = 10.0
 step = 0.1
 value = 1.0
-
-[node name="LabelCam" type="Label" parent="UIManager/Panel/VBoxContainer" unique_id=1357732554]
-layout_mode = 2
-text = "Câmera: Arrastar para Rotacionar
-Shift+Arrastar para Mover (Pan)
-Scroll: Zoom"
-script = ExtResource("3_fos0i")
 
 [node name="BtnLoadLocal" type="Button" parent="UIManager/Panel" unique_id=267999399]
 layout_mode = 1

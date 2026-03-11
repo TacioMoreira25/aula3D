@@ -10,7 +10,6 @@ public partial class UIManager : CanvasLayer
     private CheckBox _checkY;
     private CheckBox _checkZ;
     private Button _btnLoadLocal;
-    private LabelCam _labelCam;
 
     private HSlider _sliderPosX;
     private HSlider _sliderPosY;
@@ -22,8 +21,6 @@ public partial class UIManager : CanvasLayer
 
     // Distância máxima do clipping. Para objetos muito grandes, esse valor pode precisar ser ajustado via código dependendo da AABB do Modelo
     private float _maxClipDistance = 50.0f;
-
-    public LabelCam LabelCam { get => _labelCam; set => _labelCam = value; }
 
     [Signal]
     public delegate void OnLoadLocalRequestedEventHandler();
@@ -51,7 +48,6 @@ public partial class UIManager : CanvasLayer
         _checkZ = GetNodeOrNull<CheckBox>("Panel/VBoxContainer/HBoxZ/CheckZ");
 
         _btnLoadLocal = GetNodeOrNull<Button>("Panel/BtnLoadLocal");
-        _labelCam = GetNodeOrNull<LabelCam>("Panel/LabelCam");
 
         _sliderPosX = GetNodeOrNull<HSlider>("Panel/VBoxContainer/HBoxPosX/SliderPosX");
         _sliderPosY = GetNodeOrNull<HSlider>("Panel/VBoxContainer/HBoxPosY/SliderPosY");

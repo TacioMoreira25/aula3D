@@ -64,7 +64,6 @@ public partial class GameManager : Node
 		if (_modelManager != null)
 		{
             await _modelManager.LoadModelAsync(path);
-            _uiManager.LabelCam.Show();
 		}
 		else
 		{
