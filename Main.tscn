@@ -236,6 +236,6 @@ shadow_enabled = true
 environment = SubResource("Environment_main")
 
 [node name="Floor" type="CSGBox3D" parent="WorldLayer" unique_id=1099815833]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.460167, -1.3245392, -35.544277)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.922098, -27.498228, -35.544277)
 size = Vector3(100, 0.1, 100)
 script = ExtResource("5_fos0i")
