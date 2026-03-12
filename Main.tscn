@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://c46wp1en67glj" path="res://src/Camera/CameraController.cs" id="3_cam"]
 [ext_resource type="Script" uid="uid://ctjn8lcdf1f57" path="res://src/Core/ModelManager.cs" id="4_mod"]
 [ext_resource type="Script" uid="uid://1l4fherxx44y" path="res://src/Core/Floor.cs" id="5_fos0i"]
+[ext_resource type="Script" uid="uid://dfmy22q84sjjq" path="res://src/Core/ControladorDeVisao.cs" id="6_visao"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -239,3 +240,6 @@ environment = SubResource("Environment_main")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.460167, -1.3245392, -35.544277)
 size = Vector3(100, 0.1, 100)
 script = ExtResource("5_fos0i")
+
+[node name="ControladorDeVisao" type="Node" parent="." unique_id=1457505152]
+script = ExtResource("6_visao")

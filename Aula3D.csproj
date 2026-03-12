@@ -1,7 +1,24 @@
 <Project Sdk="Godot.NET.Sdk/4.6.1">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net10.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
+
+  <ItemGroup> 
+    <Compile Remove="VisaoComputacionalTeste\**" />
+    <Content Remove="VisaoComputacionalTeste\**" />
+    <EmbeddedResource Remove="VisaoComputacionalTeste\**" />
+    <None Remove="VisaoComputacionalTeste\**" />
+  </ItemGroup>
+
+  <ItemGroup> 
+    <ProjectReference Include="./VisaoComputacionalTeste/VisaoComputacionalTeste.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260302" />
+    <PackageReference Include="OpenCvSharp4.official.runtime.ubuntu.24.04-x64" Version="4.13.0.20260302" />
+  </ItemGroup>
+
 </Project>

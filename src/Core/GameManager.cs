@@ -17,7 +17,7 @@ public partial class GameManager : Node
 			_uiManager.OnLoadLocalRequested += HandleLoadLocalRequest;
 			_uiManager.OnAxisValuesChanged += HandleAxisValuesChanged;
 			_uiManager.OnPositionValuesChanged += HandlePositionValuesChanged;
-            _uiManager.OnScaleValuesChanged += HandleScaleValuesChanged;
+			_uiManager.OnScaleValuesChanged += HandleScaleValuesChanged;
 		}
 
 		// Setup FileDialog em runtime para que funcione se nao estiver configurado na cena
@@ -36,26 +36,26 @@ public partial class GameManager : Node
 
 	private void HandleLoadLocalRequest()
 	{
-        _fileDialog.PopupCenteredRatio(0.5f);
+		_fileDialog.PopupCenteredRatio(0.5f);
 	}
 
 	private void HandleAxisValuesChanged(float x, float y, float z)
 	{
-        // Exemplo: Usando a função SetModelRotation que foi criada no ModelManager.
-        // Dependendo do range do seu Slider na interface (ex: 0 a 100 ou 0 a 360),
-        // você pode multiplicar aqui se necessário. Estou passando diretamente.
-        _modelManager?.SetModelRotation(x, y, z);
-    }
+		// Exemplo: Usando a função SetModelRotation que foi criada no ModelManager.
+		// Dependendo do range do seu Slider na interface (ex: 0 a 100 ou 0 a 360),
+		// você pode multiplicar aqui se necessário. Estou passando diretamente.
+		_modelManager?.SetModelRotation(x, y, z);
+	}
 
-    private void HandlePositionValuesChanged(float x, float y, float z)
-    {
-        _modelManager?.SetModelPosition(x, y, z);
-    }
+	private void HandlePositionValuesChanged(float x, float y, float z)
+	{
+		_modelManager?.SetModelPosition(x, y, z);
+	}
 
-    private void HandleScaleValuesChanged(float x, float y, float z)
-    {
-        _modelManager?.SetModelScale(x, y, z);
-    }
+	private void HandleScaleValuesChanged(float x, float y, float z)
+	{
+		_modelManager?.SetModelScale(x, y, z);
+	}
 
 	private async void OnFileSelected(string path)
 	{
@@ -63,7 +63,7 @@ public partial class GameManager : Node
 
 		if (_modelManager != null)
 		{
-            await _modelManager.LoadModelAsync(path);
+			await _modelManager.LoadModelAsync(path);
 		}
 		else
 		{

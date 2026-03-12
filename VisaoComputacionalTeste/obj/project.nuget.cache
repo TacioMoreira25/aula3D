@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "M5D0v9nSTC0=",
+  "success": true,
+  "projectFilePath": "/home/tacio/Documentos/Dev/C#/aula3d-app-proto/VisaoComputacionalTeste/VisaoComputacionalTeste.csproj",
+  "expectedPackageFiles": [
+    "/home/tacio/.nuget/packages/opencvsharp4/4.13.0.20260302/opencvsharp4.4.13.0.20260302.nupkg.sha512",
+    "/home/tacio/.nuget/packages/opencvsharp4.official.runtime.ubuntu.24.04-x64/4.13.0.20260302/opencvsharp4.official.runtime.ubuntu.24.04-x64.4.13.0.20260302.nupkg.sha512"
+  ],
+  "logs": []
+}

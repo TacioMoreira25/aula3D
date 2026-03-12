@@ -1,0 +1,58 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "VisaoComputacionalTeste/1.0.0": {
+        "dependencies": {
+          "OpenCvSharp4": "4.13.0.20260302",
+          "OpenCvSharp4.official.runtime.ubuntu.24.04-x64": "4.13.0.20260302"
+        },
+        "runtime": {
+          "VisaoComputacionalTeste.dll": {}
+        }
+      },
+      "OpenCvSharp4/4.13.0.20260302": {
+        "runtime": {
+          "lib/net8.0/OpenCvSharp.dll": {
+            "assemblyVersion": "4.13.0.0",
+            "fileVersion": "4.13.0.0"
+          }
+        }
+      },
+      "OpenCvSharp4.official.runtime.ubuntu.24.04-x64/4.13.0.20260302": {
+        "runtimeTargets": {
+          "runtimes/ubuntu.24.04-x64/native/libOpenCvSharpExtern.so": {
+            "rid": "ubuntu.24.04-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "VisaoComputacionalTeste/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "OpenCvSharp4/4.13.0.20260302": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lfXmyTu2o7szCcgouTeDF26Rn34BIsCyfPKC9lTatbQILrKGaFze2QloYizm5aQZW4m1rrlCH1rBkKwJ5jitiQ==",
+      "path": "opencvsharp4/4.13.0.20260302",
+      "hashPath": "opencvsharp4.4.13.0.20260302.nupkg.sha512"
+    },
+    "OpenCvSharp4.official.runtime.ubuntu.24.04-x64/4.13.0.20260302": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-C+cUWXqwWNmeANVtDCZI1skJjau3NF+if77QV6xtuMP3Xx0Rvd8M03a2ToISIB0iJ3Vw6yOfdtDx6Bn/6WCjHw==",
+      "path": "opencvsharp4.official.runtime.ubuntu.24.04-x64/4.13.0.20260302",
+      "hashPath": "opencvsharp4.official.runtime.ubuntu.24.04-x64.4.13.0.20260302.nupkg.sha512"
+    }
+  }
+}
