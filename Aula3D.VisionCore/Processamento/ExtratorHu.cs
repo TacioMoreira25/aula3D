@@ -29,40 +29,22 @@ namespace Aula3D.VisionCore.Processamento
             }
         }
 
-        // ----------------------------------------------------------------
-        // TODO - Dupla 1: Implementar os 7 Momentos de Hu
-        // ----------------------------------------------------------------
-        // Os Momentos de Hu são derivados dos momentos centrais normalizados
-        // (µpq / µ00^((p+q)/2+1)) e fornecem uma "impressão digital" da forma.
-        //
-        // Passos sugeridos:
-        //  1. Calcular os momentos de 2ª e 3ª ordem com Cv2.Moments(contour).
-        //  2. Chamar Cv2.HuMoments(moments) → double[7].
-        //  3. Aplicar transformação log: -sign(h) * log10(|h| + 1e-10) para
-        //     normalizar a grande variação de escala.
-        //  4. Armazenar o vetor resultante no campo HuDescriptor abaixo.
-        //
-        // Exemplo de uso posterior (ClassificadorDeGestos):
-        //   double distancia = CalcularDistanciaEuclidiana(descAtual, descGravado);
-        //   if (distancia < limiar) gestureId = id_do_gesto;
-        // ----------------------------------------------------------------
-
         /// <summary>
-        /// [TODO - Dupla 1] Calcula e retorna o vetor de 7 Momentos de Hu
+        /// Calcula e retorna o vetor de 7 Momentos de Hu
         /// com escala logarítmica para o <paramref name="contour"/> fornecido.
-        /// Retorna array de zeros enquanto não implementado.
+        /// A transformação log normaliza a grande variação de escala dos momentos.
         /// </summary>
         public static double[] CalcularMomentosHu(Point[] contour)
         {
-            // TODO: substituir pelo cálculo real dos Momentos de Hu
-            // Sugestão:
-            //   var mom = Cv2.Moments(contour);
-            //   double[] hu = new double[7];
-            //   Cv2.HuMoments(mom, hu);
-            //   for (int i = 0; i < 7; i++)
-            //       hu[i] = -Math.Sign(hu[i]) * Math.Log10(Math.Abs(hu[i]) + 1e-10);
-            //   return hu;
-            return new double[7];
+            var mom = Cv2.Moments(contour);
+            double[] hu = mom.HuMoments();
+
+            for (int i = 0; i < 7; i++)
+            {
+                hu[i] = -Math.Sign(hu[i]) * Math.Log10(Math.Abs(hu[i]) + 1e-10);
+            }
+
+            return hu;
         }
     }
 }

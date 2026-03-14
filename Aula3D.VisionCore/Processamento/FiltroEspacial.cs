@@ -54,6 +54,25 @@ namespace Aula3D.VisionCore.Processamento
             // 6. Dilatação: expande levemente a região para englobar bordas da pele
             Cv2.Dilate(_mask, _mask, _kernel, iterations: 2);
 
+            // 7. Cortar o braço preservando apenas a mão (Transformada de Distância)
+            using Mat dist = new Mat();
+            Cv2.DistanceTransform(_mask, dist, DistanceTypes.L2, DistanceTransformMasks.Mask5);
+            Cv2.MinMaxLoc(dist, out _, out double maxVal, out _, out Point maxLoc);
+
+            if (maxVal > 15) // Verifica se existe volume suficiente para ser uma mão
+            {
+                // maxLoc é o centro do "círculo mais gordo" (palma)
+                // Vamos calcular a altura (eixo Y) aproximada onde fica o pulso
+                int limiteY = (int)Math.Min(_mask.Height, maxLoc.Y + maxVal * 1.0);
+
+                // Criamos uma tela retangular revelando tudo entre o teto e a linha do pulso
+                using Mat limiteMask = Mat.Zeros(_mask.Size(), MatType.CV_8UC1);
+                Cv2.Rectangle(limiteMask, new Point(0, 0), new Point(_mask.Width, limiteY), Scalar.White, -1);
+
+                // Remove da máscara principal os pixels indesejados abaixo da linha (braço)
+                Cv2.BitwiseAnd(_mask, limiteMask, _mask);
+            }
+
             return _mask;
         }
 

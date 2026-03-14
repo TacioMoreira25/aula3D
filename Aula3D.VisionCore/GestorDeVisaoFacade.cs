@@ -1,7 +1,4 @@
 #nullable enable
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using OpenCvSharp;
 using Aula3D.VisionCore.Interfaces;
 using Aula3D.VisionCore.Processamento;

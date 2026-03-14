@@ -55,6 +55,14 @@ namespace Aula3D.VisionConsole
                     ExtratorHu.ExtrairGeometria(contorno, resultado);
                     ClassificadorDeGestos.Classificar(contorno, resultado);
 
+                    double[] hu = ExtratorHu.CalcularMomentosHu(contorno);
+                    string? bestGesture = ClassificadorDeGestos.ReconhecerPorAssinatura(hu);
+                    if (bestGesture != null)
+                    {
+                        resultado.State = bestGesture;
+                        resultado.IsHandOpen = bestGesture == "ABERTA";
+                    }
+
                     // Desenho de debug no ROI
                     if (resultado.Contour != null)
                     {
@@ -90,7 +98,6 @@ namespace Aula3D.VisionConsole
                     }
 
                     // Exibe Momentos de Hu no console (útil para calibrar o classificador)
-                    double[] hu = ExtratorHu.CalcularMomentosHu(contorno);
                     Console.Write($"\r[{resultado.State,-7}] Hu: [{string.Join(", ", Array.ConvertAll(hu, h => $"{h:F3}"))}]   ");
                 }
                 else
@@ -102,7 +109,22 @@ namespace Aula3D.VisionConsole
                 Cv2.ImShow("Máscara HSV - Dupla 1 Debug", filtro.GetMask());
                 Cv2.ImShow("Controle 3D - Visão Computacional", frame);
 
-                if (Cv2.WaitKey(30) == 27) break;
+                int key = Cv2.WaitKey(30);
+                if (key == 27) break;
+                if (contornos.Length > 0)
+                {
+                    double[] currentHu = ExtratorHu.CalcularMomentosHu(contornos[0]);
+                    if (key == 'a' || key == 'A')
+                    {
+                        ClassificadorDeGestos.SalvarAssinatura("ABERTA", currentHu);
+                        Console.WriteLine("\n[TREINO] Assinatura salva para: ABERTA");
+                    }
+                    else if (key == 'f' || key == 'F')
+                    {
+                        ClassificadorDeGestos.SalvarAssinatura("FECHADA", currentHu);
+                        Console.WriteLine("\n[TREINO] Assinatura salva para: FECHADA");
+                    }
+                }
             }
 
             Console.WriteLine();

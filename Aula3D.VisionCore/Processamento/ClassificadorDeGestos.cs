@@ -1,6 +1,8 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using OpenCvSharp;
 
 namespace Aula3D.VisionCore.Processamento
@@ -65,33 +67,77 @@ namespace Aula3D.VisionCore.Processamento
             resultado.State        = resultado.IsHandOpen ? "ABERTA" : "FECHADA";
         }
 
-        // ----------------------------------------------------------------
-        // TODO - Dupla 1: Implementar reconhecimento por assinaturas gravadas
-        // ----------------------------------------------------------------
-        // O método abaixo deve:
-        //  1. Receber o vetor de 7 Momentos de Hu calculado por ExtratorHu.
-        //  2. Comparar com um dicionário de assinaturas pré-gravadas
-        //     (gravar em arquivo JSON ou embedded resource).
-        //  3. Retornar o ID do gesto mais próximo se a distância for < limiar,
-        //     ou null se nenhum gesto reconhecido.
-        //
-        // Assinaturas podem ser gravadas rodando VisionConsole em "modo treino":
-        //   gravadas["ABERTA"]  = momentosHuAtual;
-        //   gravadas["FECHADA"] = momentosHuAtual;
-        //   File.WriteAllText("gestures.json", JsonSerializer.Serialize(gravadas));
-        // ----------------------------------------------------------------
-
         /// <summary>
-        /// [TODO - Dupla 1] Compara <paramref name="momentosHu"/> com assinaturas
+        /// Compara <paramref name="momentosHu"/> com assinaturas
         /// pré-gravadas e retorna o nome do gesto reconhecido, ou null.
         /// </summary>
         public static string? ReconhecerPorAssinatura(double[] momentosHu)
         {
-            // TODO: carregar assinaturas de gestures.json e comparar por distância Euclidiana
+            string path = "gestures.json";
+            if (!File.Exists(path))
+                return null;
+
+            try
+            {
+                string json = File.ReadAllText(path);
+                var gravadas = JsonSerializer.Deserialize<Dictionary<string, double[]>>(json);
+
+                if (gravadas == null || gravadas.Count == 0)
+                    return null;
+
+                string? bestGesture = null;
+                double minDistance = double.MaxValue;
+                double limiar = 12.0; // Aumentamos o threshold bastante porque o momento de Hu oscila
+
+                foreach (var (gesture, signature) in gravadas)
+                {
+                    double dist = 0;
+                    for (int i = 0; i < 6; i++) // Ignoramos o 7º momento (muda de sinal constante e sofre reflexivos)
+                    {
+                        dist += Math.Pow(momentosHu[i] - signature[i], 2);
+                    }
+                    dist = Math.Sqrt(dist);
+
+                    if (dist < minDistance)
+                    {
+                        minDistance = dist;
+                        bestGesture = gesture;
+                    }
+                }
+
+                if (minDistance < limiar)
+                    return bestGesture;
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao ler assinaturas: {ex.Message}");
+            }
+
             return null;
         }
 
         // -- helpers --
+
+        public static void SalvarAssinatura(string gesto, double[] momentosHu)
+        {
+            string path = "gestures.json";
+            Dictionary<string, double[]> gravadas = new();
+
+            if (File.Exists(path))
+            {
+                try
+                {
+                    string json = File.ReadAllText(path);
+                    var dict = JsonSerializer.Deserialize<Dictionary<string, double[]>>(json);
+                    if (dict != null) gravadas = dict;
+                }
+                catch { }
+            }
+
+            gravadas[gesto] = momentosHu;
+            File.WriteAllText(path, JsonSerializer.Serialize(gravadas, new JsonSerializerOptions { WriteIndented = true }));
+        }
 
         private static double Dist(Point a, Point b) =>
             Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
