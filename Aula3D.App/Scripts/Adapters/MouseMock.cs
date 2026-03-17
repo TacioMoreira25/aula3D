@@ -9,35 +9,35 @@ using Aula3D.VisionCore.Interfaces;
 /// </summary>
 public class MouseMock : IGestureProvider
 {
-    public float X { get; private set; }
-    public float Y { get; private set; }
-    public bool GestoDetectado { get; private set; } // Click esquerdo = Fechada (false), Solto = Aberta (true)
-    public bool HandDetected { get; private set; }   // Sempre true se o mouse estiver na tela
+	public float X { get; private set; }
+	public float Y { get; private set; }
+	public bool GestoDetectado { get; private set; } // Click esquerdo = Fechada (false), Solto = Aberta (true)
+	public bool HandDetected { get; private set; }   // Sempre true se o mouse estiver na tela
 
-    public MouseMock()
-    {
-        // Simulamos um "loop de visão" atrelando ao _Process real do Godot
-        // Mas como esta não é uma classe Node nativa, o uso recomendado é:
-        // O Objeto3D chama _AtualizarDados(Input...) no seu _Process.
-    }
+	public MouseMock()
+	{
+		// Simulamos um "loop de visão" atrelando ao _Process real do Godot
+		// Mas como esta não é uma classe Node nativa, o uso recomendado é:
+		// O Objeto3D chama _AtualizarDados(Input...) no seu _Process.
+	}
 
-    /// <summary>
-    /// Chama a cada frame dentro do Godot para atualizar o mock.
-    /// </summary>
-    public void AtualizarMock()
-    {
-        var viewport = Engine.GetMainLoop() as SceneTree;
-        if (viewport?.Root != null)
-        {
-            Vector2 mousePos = viewport.Root.GetMousePosition();
-            X = mousePos.X;
-            Y = mousePos.Y;
-            
-            // Simula "Mão Aberta" = True (rotação livre)
-            // Simula "Mão Fechada" = False (quando botão esquerdo está pressionado)
-            GestoDetectado = !Input.IsMouseButtonPressed(MouseButton.Left);
-            
-            HandDetected = true;
-        }
-    }
+	/// <summary>
+	/// Chama a cada frame dentro do Godot para atualizar o mock.
+	/// </summary>
+	public void AtualizarMock()
+	{
+		var viewport = Engine.GetMainLoop() as SceneTree;
+		if (viewport?.Root != null)
+		{
+			Vector2 mousePos = viewport.Root.GetMousePosition();
+			X = mousePos.X;
+			Y = mousePos.Y;
+			
+			// Simula "Mão Aberta" = True (rotação livre)
+			// Simula "Mão Fechada" = False (quando botão esquerdo está pressionado)
+			GestoDetectado = !Input.IsMouseButtonPressed(MouseButton.Left);
+			
+			HandDetected = true;
+		}
+	}
 }

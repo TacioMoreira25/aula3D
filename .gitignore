@@ -13,3 +13,4 @@
 
 *.dll
 *.pdb
+libOpenCvSharpExtern.so

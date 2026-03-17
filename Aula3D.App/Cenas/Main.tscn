@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://c6v2dyp5v6m2n"]
 
-[ext_resource type="Script" uid="uid://3jt2u80lsajw" path="res://Scripts/Controladores/GameManager.cs" id="1_gm"]
-[ext_resource type="Script" uid="uid://c4pb4obfvfuws" path="res://Scripts/Controladores/PainelAcademico.cs" id="2_ui"]
-[ext_resource type="Script" uid="uid://c46wp1en67glj" path="res://Scripts/Controladores/CameraController.cs" id="3_cam"]
-[ext_resource type="Script" uid="uid://ctjn8lcdf1f57" path="res://Scripts/Controladores/Objeto3D.cs" id="4_mod"]
-[ext_resource type="Script" uid="uid://1l4fherxx44y" path="res://Scripts/Utilitarios/Floor.cs" id="5_fos0i"]
+[ext_resource type="Script" uid="uid://bd12fy1rua6p2" path="res://Scripts/Controladores/GameManager.cs" id="1_gm"]
+[ext_resource type="Script" uid="uid://clx0f6mx561vh" path="res://Scripts/Controladores/PainelAcademico.cs" id="2_ui"]
+[ext_resource type="Script" uid="uid://dla3vg424r5wv" path="res://Scripts/Controladores/CameraController.cs" id="3_cam"]
+[ext_resource type="Script" uid="uid://d123hmktjjwb0" path="res://Scripts/Controladores/Objeto3D.cs" id="4_mod"]
+[ext_resource type="Script" uid="uid://cvehvj4c3plxs" path="res://Scripts/Utilitarios/Floor.cs" id="5_fos0i"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -205,13 +205,27 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -60.0
-offset_right = 100.0
-offset_bottom = -20.0
+offset_left = -99.0
+offset_top = -59.0
+offset_right = 101.0
+offset_bottom = -19.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Carregar Modelo Local"
+
+[node name="CameraPreview" type="TextureRect" parent="UIManager/Panel" unique_id=1835982852]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -84.659004
+anchor_top = -17.028
+anchor_right = -84.659004
+anchor_bottom = -17.028
+offset_left = 24519.701
+offset_top = 10939.144
+offset_right = 24976.701
+offset_bottom = 11397.144
+expand_mode = 1
+stretch_mode = 5
 
 [node name="WorldLayer" type="Node3D" parent="." unique_id=840670441]
 

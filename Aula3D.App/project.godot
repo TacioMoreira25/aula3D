@@ -11,8 +11,12 @@ config_version=5
 [application]
 
 config/name="Visualizador 3D Educacional"
-run/main_scene="res://Cenas/Main.tscn"
+run/main_scene="uid://c6v2dyp5v6m2n"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
+
+[display]
+
+window/stretch/mode="canvas_items"
 
 [dotnet]
 
