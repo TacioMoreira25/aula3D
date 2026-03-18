@@ -29,7 +29,7 @@ namespace Aula3D.VisionCore
                     {
                         bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                         string fileName = isWindows ? "OpenCvSharpExtern.dll" : "libOpenCvSharpExtern.so";
-                        
+
                         string cwd = System.IO.Directory.GetCurrentDirectory();
                         string customPath = System.IO.Path.Combine(cwd, fileName);
 
