@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Aula3D.VisionCore/Aula3D.VisionCore.csproj" />
+  <Project Path="Aula3D.App/Aula3D.App.csproj" />
+  <Project Path="Aula3D.VisionConsole/Aula3D.VisionConsole.csproj" />
+</Solution>

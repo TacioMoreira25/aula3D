@@ -1,5 +1,4 @@
 using OpenCvSharp;
-using System;
 
 namespace Aula3D.VisionCore.Processamento
 {

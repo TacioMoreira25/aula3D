@@ -1,7 +1,4 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using OpenCvSharp;
 
@@ -87,7 +84,7 @@ namespace Aula3D.VisionCore.Processamento
 
                 string? bestGesture = null;
                 double minDistance = double.MaxValue;
-                double limiar = 12.0; // Aumentamos o threshold bastante porque o momento de Hu oscila
+                double limiar = 12.0; 
 
                 foreach (var (gesture, signature) in gravadas)
                 {

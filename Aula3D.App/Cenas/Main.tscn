@@ -213,19 +213,11 @@ grow_horizontal = 2
 grow_vertical = 0
 text = "Carregar Modelo Local"
 
-[node name="CameraPreview" type="TextureRect" parent="UIManager/Panel" unique_id=1835982852]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -84.659004
-anchor_top = -17.028
-anchor_right = -84.659004
-anchor_bottom = -17.028
-offset_left = 24519.701
-offset_top = 10939.144
-offset_right = 24976.701
-offset_bottom = 11397.144
+[node name="CameraPreview" type="TextureRect" parent="UIManager" unique_id=1835982852]
+offset_right = 509.0
+offset_bottom = 531.0
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 4
 
 [node name="WorldLayer" type="Node3D" parent="." unique_id=840670441]
 

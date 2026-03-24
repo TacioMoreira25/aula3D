@@ -67,24 +67,6 @@ public partial class PainelAcademico : CanvasLayer
 	}
 
 	// -------------------------------------------------------------------
-	// TODO - Dupla 2: Painel Acadêmico (para a banca)
-	// -------------------------------------------------------------------
-	// Adicionar aqui:
-	//  1. 4 TextureRect para exibir os frames do pipeline PDI:
-	//       - Frame original da webcam
-	//       - Máscara HSV (FiltroEspacial)
-	//       - Contorno + hull convexo (ExtratorHu)
-	//       - Resultado final com defects e label (ClassificadorDeGestos)
-	//
-	//  2. Labels de debug para exibir em tempo real:
-	//       - Momentos de Hu (7 valores)
-	//       - Estado da mão (ABERTA / FECHADA)
-	//       - Coordenadas X, Y, Z da mão
-	//       - FPS atual
-	//
-	// -------------------------------------------------------------------
-
-	// -------------------------------------------------------------------
 	// Clipping helpers
 	// -------------------------------------------------------------------
 	private static void DisableAllClipping()

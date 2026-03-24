@@ -1,4 +1,3 @@
-#nullable enable
 using OpenCvSharp;
 using System.Runtime.InteropServices;
 using Aula3D.VisionCore.Interfaces;
@@ -9,11 +8,11 @@ using System.Reflection;
 namespace Aula3D.VisionCore
 {
     /// <summary>
-    /// Única classe pública acessada pelo Godot (Dupla 2).
+    /// Única classe pública acessada pelo Godot.
     /// Esconde toda dependência do OpenCV e orquestra o pipeline PDI:
     /// FiltroEspacial → ExtratorHu → ClassificadorDeGestos.
     ///
-    /// Implementa <see cref="IGestureProvider"/> — o contrato acordado entre as duplas.
+    /// Implementa <see cref="IGestureProvider"/>.
     /// </summary>
     public class GestorDeVisaoFacade : IGestureProvider, IDisposable
     {
@@ -60,6 +59,8 @@ namespace Aula3D.VisionCore
         public bool  IsHandOpen => GestoDetectado;
         public float Z          { get; private set; }       // estimativa de profundidade por área
         public byte[]? FrameBuffer { get; private set; }
+        public int CurrentFPS { get; private set; }
+        public long CurrentRAM { get; private set; }
         
         public int DebugViewIndex { get; set; } = 0; // 0 = Original, 1 = FFT, 2 = Mask, 3 = Canny
 
@@ -90,8 +91,15 @@ namespace Aula3D.VisionCore
 
             if (!capture.IsOpened()) return;
 
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
             while (!token.IsCancellationRequested)
             {
+                double fps = 1000.0 / stopwatch.Elapsed.TotalMilliseconds;
+                stopwatch.Restart();
+                CurrentFPS = (int)Math.Round(fps);
+                CurrentRAM = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
+
                 capture.Read(frame);
                 if (frame.Empty()) continue;
 
@@ -172,35 +180,65 @@ namespace Aula3D.VisionCore
                     HandDetected = false;
                 }
 
-                // Desenha a região de interesse para o professor saber onde colocar a mão
+                // Desenha a região de interesse para saber onde colocar a mão
                 Cv2.Rectangle(frame, roi, new Scalar(255, 255, 0), 2);
-                Cv2.PutText(frame, "AREA DE CONTROLE 3D", new Point(roi.X, roi.Y - 10),
-                    HersheyFonts.HersheySimplex, 0.5, new Scalar(255, 255, 0), 1);
+                Cv2.PutText(frame, "AREA DE CONTROLE", new Point(roi.X + 5, roi.Y + 15),
+                    HersheyFonts.HersheySimplex, 0.4, new Scalar(255, 255, 0), 1);
 
-                Mat frameToEncode = frame;
+                using Mat frameToEncode = new Mat();
+                using Mat debugResized = new Mat();
+                int textY = 25; // Abaixei um pouco para não cortar
+                Scalar textColor = new Scalar(0, 255, 0); // Verde
+
+                Mat sourceMat;
+                string viewText;
 
                 if (DebugViewIndex == 1 && !filtro.MatFFT.Empty())
                 {
-                    frameToEncode = filtro.MatFFT;
-                    Cv2.PutText(frameToEncode, "Visualizacao: 1. FFT Passa-Baixa", new Point(10, 20), HersheyFonts.HersheySimplex, 0.5, Scalar.White, 1);
+                    sourceMat = filtro.MatFFT;
+                    viewText = "Visualizacao: 2. FFT";
                 }
                 else if (DebugViewIndex == 2 && !filtro.GetMask().Empty())
                 {
-                    frameToEncode = filtro.GetMask();
-                    Cv2.PutText(frameToEncode, "Visualizacao: 2. Mascara HSV + CLAHE", new Point(10, 20), HersheyFonts.HersheySimplex, 0.5, Scalar.White, 1);
+                    sourceMat = filtro.GetMask();
+                    viewText = "Visualizacao: 3. HSV";
                 }
                 else if (DebugViewIndex == 3 && !filtro.MatCanny.Empty())
                 {
-                    frameToEncode = filtro.MatCanny;
-                    Cv2.PutText(frameToEncode, "Visualizacao: 3. Bordas Canny", new Point(10, 20), HersheyFonts.HersheySimplex, 0.5, Scalar.White, 1);
+                    sourceMat = filtro.MatCanny;
+                    viewText = "Visualizacao: 4. Canny";
                 }
+                else 
+                {
+                    sourceMat = frame;
+                    viewText = "Visualizacao: 1. Real";
+                }
+
+                // Aplica Resize e Color Convert uma uníca vez para a imagem selecionada
+                if (sourceMat.Width != frame.Width || sourceMat.Height != frame.Height)
+                {
+                    Cv2.Resize(sourceMat, debugResized, frame.Size(), 0, 0, InterpolationFlags.Linear);
+                    if (debugResized.Channels() == 1)
+                        Cv2.CvtColor(debugResized, frameToEncode, ColorConversionCodes.GRAY2BGR);
+                    else
+                        debugResized.CopyTo(frameToEncode);
+                }
+                else
+                {
+                    sourceMat.CopyTo(frameToEncode);
+                }
+
+                Cv2.PutText(frameToEncode, viewText, new Point(10, textY), HersheyFonts.HersheySimplex, 0.5, textColor, 2);
+
+                int rightX = frameToEncode.Width - 110;
+                Cv2.PutText(frameToEncode, $"FPS: {CurrentFPS}", new Point(rightX, textY), HersheyFonts.HersheySimplex, 0.5, textColor, 2);
+                Cv2.PutText(frameToEncode, $"RAM: {CurrentRAM}MB", new Point(rightX, textY + 20), HersheyFonts.HersheySimplex, 0.5, textColor, 2);
 
                 // Codifica o frame JÁ DESENHADO em formato JPG leve
                 var encodeParams = new ImageEncodingParam[] { new ImageEncodingParam(ImwriteFlags.JpegQuality, 70) };
                 Cv2.ImEncode(".jpg", frameToEncode, out byte[] buffer, encodeParams);
                 FrameBuffer = buffer;
 
-                // Trocamos o Sleep estressante por um Task.Delay moderno (Melhoria de desempenho no Godot)
                 Task.Delay(16, token).Wait();
             }
         }

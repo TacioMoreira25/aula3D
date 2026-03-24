@@ -1,133 +1,62 @@
 using System;
 using OpenCvSharp;
 using Aula3D.VisionCore;
-using Aula3D.VisionCore.Processamento;
 
 namespace Aula3D.VisionConsole
 {
     /// <summary>
     /// Ambiente de testes isolado.
-    /// Liga a webcam e abre janelas nativas no Linux para depurar o pipeline PDI
-    /// sem precisar abrir o Godot Editor.
+    /// Consome a mesma GestorDeVisaoFacade utilizada pelo Godot para garantir
+    /// que o comportamento testado no Console será idêntico ao do App 3D.
     /// </summary>
     class Program
     {
         static void Main(string[] args)
         {
-            using var capture = new VideoCapture(0);
-            if (!capture.IsOpened())
-            {
-                Console.WriteLine("Erro: Nenhuma webcam detectada.");
-                return;
-            }
-
+            Console.WriteLine("Iniciando rastreamento de visão...");
             Console.WriteLine("Pressione 'ESC' na janela do vídeo para encerrar.");
+            Console.WriteLine("Pressione '1', '2', '3' ou '4' para trocar as visualizações de debug.");
 
-            using var frame   = new Mat();
-            using var filtro  = new FiltroEspacial();
+            // Instancia e inicia o Facade exatamente como o Objeto3D no Godot faz
+            using var facade = new GestorDeVisaoFacade();
+            facade.Iniciar();
 
             while (true)
             {
-                capture.Read(frame);
-                if (frame.Empty()) break;
-
-                Cv2.Flip(frame, frame, FlipMode.Y);
-
-                int sideWidth  = Math.Min(300, frame.Width  / 2);
-                int sideHeight = frame.Height - 60;
-                Rect leftRoi   = new Rect(10, 30, sideWidth, sideHeight);
-
-                // Desenha a região de interesse no frame principal
-                Cv2.Rectangle(frame, leftRoi, new Scalar(255, 255, 0), 2);
-                Cv2.PutText(frame, "CONTROLE 3D (Z = ZOOM)", new Point(leftRoi.X, leftRoi.Y - 10),
-                    HersheyFonts.HersheySimplex, 0.6, new Scalar(255, 255, 0), 2);
-
-                // --- Pipeline PDI ---
-                using Mat frameRoi  = new Mat(frame, leftRoi);
-                filtro.Aplicar(frameRoi);
-                Point[][] contornos = filtro.ExtrairContornos();
-
-                if (contornos.Length > 0)
+                // Verifica se já temos um frame processado disponivel
+                if (facade.FrameBuffer != null && facade.FrameBuffer.Length > 0)
                 {
-                    Point[] contorno = contornos[0];
-                    var resultado    = new HandTrackingResult { HandDetected = true, Contour = contorno };
-
-                    ExtratorHu.ExtrairGeometria(contorno, resultado);
-                    ClassificadorDeGestos.Classificar(contorno, resultado);
-
-                    double[] hu = ExtratorHu.CalcularMomentosHu(contorno);
-                    string? bestGesture = ClassificadorDeGestos.ReconhecerPorAssinatura(hu);
-                    if (bestGesture != null)
+                    // Decodifica o JPG em tempo real simulando a leitura do Godot
+                    using Mat frame = Cv2.ImDecode(facade.FrameBuffer, ImreadModes.Color);
+                    if (!frame.Empty())
                     {
-                        resultado.State = bestGesture;
-                        resultado.IsHandOpen = bestGesture == "ABERTA";
+                        Cv2.ImShow("Controle 3D - Visao Computacional", frame);
                     }
+                }
 
-                    // Desenho de debug no ROI
-                    if (resultado.Contour != null)
-                    {
-                        Cv2.DrawContours(frameRoi, new[] { resultado.Contour }, 0,
-                            new Scalar(0, 255, 0), 2);
-
-                        Point[] hullPoints = Cv2.ConvexHull(resultado.Contour);
-                        Cv2.DrawContours(frameRoi, new[] { hullPoints }, 0,
-                            new Scalar(255, 0, 0), 2);
-                    }
-
-                    if (resultado.DefectPoints != null)
-                        foreach (var pt in resultado.DefectPoints)
-                            Cv2.Circle(frameRoi, pt, 6, new Scalar(255, 0, 255), -1);
-
-                    if (resultado.State != null)
-                        Cv2.PutText(frameRoi, resultado.State,
-                            new Point(resultado.BoundingRect.X,
-                                      Math.Max(20, resultado.BoundingRect.Y - 10)),
-                            HersheyFonts.HersheySimplex, 1.0,
-                            resultado.IsHandOpen ? new Scalar(0, 255, 0) : new Scalar(0, 0, 255), 2);
-
-                    if (resultado.CenterOfMass.X > 0 || resultado.CenterOfMass.Y > 0)
-                    {
-                        Cv2.Circle(frameRoi, resultado.CenterOfMass, 8, new Scalar(0, 255, 0), -1);
-
-                        double area         = resultado.BoundingRect.Width * resultado.BoundingRect.Height;
-                        double zZoomFactor  = Math.Sqrt(area) / 100.0;
-
-                        Cv2.PutText(frameRoi, $"Z: {zZoomFactor:F2}x",
-                            new Point(resultado.CenterOfMass.X - 40, resultado.CenterOfMass.Y + 30),
-                            HersheyFonts.HersheyComplex, 0.7, new Scalar(0, 255, 255), 2);
-                    }
-
-                    // Exibe Momentos de Hu no console (útil para calibrar o classificador)
-                    Console.Write($"\r[{resultado.State,-7}] Hu: [{string.Join(", ", Array.ConvertAll(hu, h => $"{h:F3}"))}]   ");
+                // Loga as informações tratadas no console
+                if (facade.HandDetected)
+                {
+                    string gesto = facade.IsHandOpen ? "ABERTA " : "FECHADA";
+                    Console.Write($"\r[{gesto}] X: {facade.X,-5:F1} Y: {facade.Y,-5:F1} Z: {facade.Z,-5:F2} | FPS: {facade.CurrentFPS} | RAM: {facade.CurrentRAM}MB      ");
                 }
                 else
                 {
-                    Console.Write("\r[SEM MÃO]                                                          ");
+                    Console.Write($"\r[SEM MAO] FPS: {facade.CurrentFPS} | RAM: {facade.CurrentRAM}MB                                              ");
                 }
 
-                // Janela da máscara binária — útil para calibrar HSV
-                Cv2.ImShow("Máscara HSV - Dupla 1 Debug", filtro.GetMask());
-                Cv2.ImShow("Controle 3D - Visão Computacional", frame);
-
+                // Inputs do teclado para testes
                 int key = Cv2.WaitKey(30);
-                if (key == 27) break;
-                if (contornos.Length > 0)
-                {
-                    double[] currentHu = ExtratorHu.CalcularMomentosHu(contornos[0]);
-                    if (key == 'a' || key == 'A')
-                    {
-                        ClassificadorDeGestos.SalvarAssinatura("ABERTA", currentHu);
-                        Console.WriteLine("\n[TREINO] Assinatura salva para: ABERTA");
-                    }
-                    else if (key == 'f' || key == 'F')
-                    {
-                        ClassificadorDeGestos.SalvarAssinatura("FECHADA", currentHu);
-                        Console.WriteLine("\n[TREINO] Assinatura salva para: FECHADA");
-                    }
-                }
+                if (key == 27) break; // ESC
+                
+                if (key == '1') facade.DebugViewIndex = 0;
+                if (key == '2') facade.DebugViewIndex = 1;
+                if (key == '3') facade.DebugViewIndex = 2;
+                if (key == '4') facade.DebugViewIndex = 3;
             }
 
-            Console.WriteLine();
+            Console.WriteLine("\nEncerrando provedor de visão...");
+            facade.Parar();
             Cv2.DestroyAllWindows();
         }
     }
