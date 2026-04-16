@@ -9,13 +9,12 @@ import segmentation_models_pytorch as smp
 # ==============================================================================
 # 1. CONFIGURAÇÃO DE CAMINHOS
 # ==============================================================================
-# Substitua pelo caminho exato de onde extraiu o FreiHAND no seu disco secundário
-DIRETORIO_DATASET = "FreiHAND"
-PASTA_IMAGENS = os.path.join(DIRETORIO_DATASET, "training/rgb/")
-PASTA_MASCARAS = os.path.join(DIRETORIO_DATASET, "training/mask/")
+DIRETORIO_DATASET = "training"
+PASTA_IMAGENS = os.path.join(DIRETORIO_DATASET, "rgb/")
+PASTA_MASCARAS = os.path.join(DIRETORIO_DATASET, "mask/")
 
 # ==============================================================================
-# 2. DEFINIÇÃO DO DATASET (Como o PyTorch lê os seus ficheiros)
+# 2. DEFINIÇÃO DO DATASET
 # ==============================================================================
 class FreiHANDDataset(Dataset):
     def __init__(self, pasta_imagens, pasta_mascaras):
@@ -23,21 +22,19 @@ class FreiHANDDataset(Dataset):
         self.pasta_mascaras = pasta_mascaras
         self.nomes_ficheiros = []
 
-        # 1. Pega em todos os ficheiros da pasta de imagens
+        # Obtém todos os arquivos JPG da pasta de imagens
         todos_ficheiros = [f for f in os.listdir(pasta_imagens) if f.endswith('.jpg')]
+        print(f"Analisando a integridade de {len(todos_ficheiros)} imagens...")
 
-        print(f"A analisar a integridade de {len(todos_ficheiros)} imagens. Por favor, aguarde...")
-
-        # 2. Mantém na lista apenas as imagens que têm uma máscara real no disco
+        # Valida a existência da máscara correspondente (JPG ou PNG)
         for ficheiro in todos_ficheiros:
             caminho_mask_jpg = os.path.join(pasta_mascaras, ficheiro)
             caminho_mask_png = os.path.join(pasta_mascaras, ficheiro.replace('.jpg', '.png'))
 
-            # Se a máscara existir em .jpg ou .png, é um ficheiro válido!
             if os.path.exists(caminho_mask_jpg) or os.path.exists(caminho_mask_png):
                 self.nomes_ficheiros.append(ficheiro)
 
-        print(f"Limpeza concluída! Vamos treinar com {len(self.nomes_ficheiros)} pares perfeitos.")
+        print(f"Validação concluída. Dataset pronto com {len(self.nomes_ficheiros)} pares de imagem e máscara.")
 
     def __len__(self):
         return len(self.nomes_ficheiros)
@@ -45,66 +42,57 @@ class FreiHANDDataset(Dataset):
     def __getitem__(self, idx):
         nome_ficheiro = self.nomes_ficheiros[idx]
 
-        # Caminho da imagem real
         caminho_img = os.path.join(self.pasta_imagens, nome_ficheiro)
-        # Caminho base para tentar a máscara
         caminho_mask = os.path.join(self.pasta_mascaras, nome_ficheiro)
 
-        # 1. Carregar imagem real
+        # Carregamento e conversão da imagem RGB
         imagem = cv2.imread(caminho_img)
         if imagem is None:
-            raise FileNotFoundError(f"Erro: O OpenCV não conseguiu ler a imagem em {caminho_img}")
-
+            raise FileNotFoundError(f"Falha ao carregar a imagem em: {caminho_img}")
+        
         imagem = cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB)
 
-        # 2. Carregar a máscara de forma inteligente
+        # Carregamento da máscara (suporte a arquivos .jpg e .png)
         mascara = cv2.imread(caminho_mask, cv2.IMREAD_GRAYSCALE)
-
-        # SE A MÁSCARA NÃO FOR .JPG, TENTA .PNG (Muito comum no FreiHAND)
         if mascara is None:
             caminho_mask_png = os.path.join(self.pasta_mascaras, nome_ficheiro.replace('.jpg', '.png'))
             mascara = cv2.imread(caminho_mask_png, cv2.IMREAD_GRAYSCALE)
 
-        # Proteção final: Se falhar em ambos os formatos, pára de forma limpa
         if mascara is None:
-            raise FileNotFoundError(f"Erro crítico: A máscara para a imagem '{nome_ficheiro}' não foi encontrada na pasta {self.pasta_mascaras}. Verifique as extensões.")
+            raise FileNotFoundError(f"Máscara não encontrada para a imagem '{nome_ficheiro}'.")
 
-        # 3. Pré-processamento (Agora seguro, porque sabemos que 'mascara' tem dados)
+        # Normalização e ajuste de dimensões da imagem (CHW)
         imagem = imagem.astype(np.float32) / 255.0
         imagem = np.transpose(imagem, (2, 0, 1))
 
+        # Binarização da máscara e ajuste de dimensões (BCHW)
         mascara = (mascara > 127).astype(np.float32)
         mascara = np.expand_dims(mascara, axis=0)
 
         return torch.tensor(imagem), torch.tensor(mascara)
 
 def treinar_e_exportar():
-    # Verifica se tem placa gráfica (GPU), caso contrário usa o processador (CPU)
     dispositivo = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"A treinar no dispositivo: {dispositivo}")
+    print(f"Dispositivo de treino: {dispositivo}")
 
-    # 1. Preparar os Dados
+    # Inicialização do Dataset e DataLoader
     dataset = FreiHANDDataset(PASTA_IMAGENS, PASTA_MASCARAS)
-    # batch_size=16 significa que processa 16 imagens de cada vez. Se faltar RAM, reduza para 8.
     dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
 
-    # 2. Construir o Modelo U-Net (MobileNetV2)
+    # Configuração da arquitetura U-Net (backbone MobileNetV2)
     modelo = smp.Unet(
         encoder_name="mobilenet_v2",
-        encoder_weights="imagenet", # Usa conhecimento prévio para treinar mais rápido
+        encoder_weights="imagenet",
         in_channels=3,
         classes=1
-    )
-    modelo = modelo.to(dispositivo)
+    ).to(dispositivo)
 
-    # 3. Configurar Otimizador e Função de Erro
-    # BCEWithLogitsLoss é ideal para máscaras binárias (preto e branco)
+    # Definição da função de perda e do otimizador
     criterio = nn.BCEWithLogitsLoss()
     otimizador = torch.optim.Adam(modelo.parameters(), lr=0.001)
 
-    # 4. Iniciar Treino (Vamos fazer 5 épocas apenas para obter um modelo inicial viável)
     epocas = 5
-    print("Iniciando o treino...")
+    print("Iniciando o loop de treino...")
 
     for epoca in range(epocas):
         modelo.train()
@@ -114,11 +102,9 @@ def treinar_e_exportar():
             imagens = imagens.to(dispositivo)
             mascaras = mascaras.to(dispositivo)
 
-            # Passagem pela rede
             otimizador.zero_grad()
             previsoes = modelo(imagens)
 
-            # Calcular erro e corrigir pesos (Backpropagation)
             erro = criterio(previsoes, mascaras)
             erro.backward()
             otimizador.step()
@@ -126,31 +112,30 @@ def treinar_e_exportar():
             erro_total += erro.item()
 
             if batch_idx % 50 == 0:
-                print(f"Época [{epoca+1}/{epocas}] | Lote [{batch_idx}/{len(dataloader)}] | Erro: {erro.item():.4f}")
+                print(f"Época [{epoca+1}/{epocas}] | Lote [{batch_idx}/{len(dataloader)}] | Loss: {erro.item():.4f}")
 
-        print(f"--- Fim da Época {epoca+1} | Erro Médio: {erro_total/len(dataloader):.4f} ---")
+        print(f"--- Fim da Época {epoca+1} | Loss Médio: {erro_total/len(dataloader):.4f} ---")
 
-    # 5. Exportar para ONNX
-    print("\nTreino concluído! A preparar exportação para ONNX...")
+    # Exportação do modelo para o formato ONNX
+    print("\nExportando modelo para formato ONNX...")
     modelo.eval()
-    modelo.to('cpu') # Movemos para a CPU para garantir que a exportação é neutra
+    modelo.to('cpu')
 
-    # Criar um "tensor falso" com as dimensões exatas que a sua Webcam enviará em C#
     tensor_exemplo = torch.randn(1, 3, 224, 224)
-
     caminho_onnx = "modelo_mao.onnx"
+
     torch.onnx.export(
         modelo,
         tensor_exemplo,
         caminho_onnx,
         export_params=True,
-        opset_version=11,          # Versão suportada pelo Microsoft.ML.OnnxRuntime
+        opset_version=11,          # Compatível com Microsoft.ML.OnnxRuntime
         do_constant_folding=True,
-        input_names=['input'],     # Nome da variável que usaremos no C#
-        output_names=['output']    # Nome do retorno que usaremos no C#
+        input_names=['input'],
+        output_names=['output']
     )
 
-    print(f"Sucesso! Ficheiro '{caminho_onnx}' gerado na pasta atual.")
+    print(f"Exportação concluída. Arquivo salvo em: '{caminho_onnx}'.")
 
 def main():
     treinar_e_exportar()

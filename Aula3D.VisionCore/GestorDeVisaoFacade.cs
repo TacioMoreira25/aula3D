@@ -81,13 +81,27 @@ namespace Aula3D.VisionCore
 
         private void LoopDeVisao(CancellationToken token)
         {
-            using var capture  = new VideoCapture(_cameraIndex);
-            using var frame    = new Mat();
-            
-            using var kalman = new SuavizadorKalman();
-            using var segmentador = new SegmentadorNeural("modelo_mao.onnx");
+            try
+            {
+                using var capture = new VideoCapture(_cameraIndex);
+                if (!capture.IsOpened())
+                {
+                    Console.WriteLine($"\n[ERRO CRITICO] Nao foi possivel abrir a camera no indice {_cameraIndex}. O OpenCV nao a encontrou.");
+                    return;
+                }
 
-            if (!capture.IsOpened()) return;
+                string baseDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "";
+                string caminhoOnnx = System.IO.Path.Combine(baseDir, "modelo_mao.onnx");
+
+                if (!System.IO.File.Exists(caminhoOnnx))
+                {
+                    Console.WriteLine($"\n[ERRO CRITICO] Nao foi encontrado o modelo ONNX em: '{caminhoOnnx}'.");
+                    return;
+                }
+
+                using var frame = new Mat();
+                using var kalman = new SuavizadorKalman();
+                using var segmentador = new SegmentadorNeural(caminhoOnnx);
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             long frameCount = 0;
@@ -219,6 +233,11 @@ namespace Aula3D.VisionCore
             }
 
             if (!ultimaMascara.Empty()) ultimaMascara.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\n[ERRO CRITICO EM LOOP DE VISAO] {ex.Message}");
+            }
         }
 
         public void Dispose() => Parar();

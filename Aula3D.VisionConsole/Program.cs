@@ -13,9 +13,10 @@ namespace Aula3D.VisionConsole
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Iniciando rastreamento de visão...");
+            Console.WriteLine("Iniciando rastreamento de visão avançado (Neural + Kalman)...");
             Console.WriteLine("Pressione 'ESC' na janela do vídeo para encerrar.");
-            Console.WriteLine("Pressione '1', '2', '3', '4' ou '5' para trocar as visualizações de debug.");
+            Console.WriteLine("Pressione '1' (Câmera Original) ou '2' (Máscara Neural) para trocar as visualizações.");
+            Console.WriteLine("Pressione 'A' para Salvar Assinatura Mão Aberta ou 'F' para Mão Fechada.");
 
             // Instancia e inicia o Facade exatamente como o Objeto3D no Godot faz
             using var facade = new GestorDeVisaoFacade();
@@ -51,9 +52,18 @@ namespace Aula3D.VisionConsole
                 
                 if (key == '1') facade.DebugViewIndex = 0;
                 if (key == '2') facade.DebugViewIndex = 1;
-                if (key == '3') facade.DebugViewIndex = 2;
-                if (key == '4') facade.DebugViewIndex = 3;
-                if (key == '5') facade.DebugViewIndex = 4;
+                
+                // Opções para treinar classificador de forma simplificada no console
+                if (key == 'a' || key == 'A')
+                {
+                    facade.SalvarAssinaturaAberta();
+                    Console.WriteLine("\n[INFO] Assinatura de Mão ABERTA salva!");
+                }
+                if (key == 'f' || key == 'F')
+                {
+                    facade.SalvarAssinaturaFechada();
+                    Console.WriteLine("\n[INFO] Assinatura de Mão FECHADA salva!");
+                }
             }
 
             Console.WriteLine("\nEncerrando provedor de visão...");
