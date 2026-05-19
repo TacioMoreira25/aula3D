@@ -1,17 +1,20 @@
-using OpenCvSharp;
+using System.Collections.Generic;
 
 namespace Aula3D.VisionCore
 {
-    /// <summary>Resultado de uma única mão detectada num frame.</summary>
-    public class HandTrackingResult
+    public class HandData
     {
-        public bool HandDetected { get; set; }
-        public bool IsHandOpen { get; set; }
-        public string? State { get; set; }
-        public Point CenterOfMass { get; set; }
-        public Rect BoundingRect { get; set; }
-        public Point[]? Contour { get; set; }
-        public Point[]? DefectPoints { get; set; }
-        public double[]? HuMoments { get; set; }
+        public float CenterX { get; set; }
+        public float CenterY { get; set; }
+        public List<Landmark> Landmarks { get; set; } = new();
+
+        // Propriedades calculadas/auxiliares
+        public bool IsOpen { get; set; }
+        public bool IsPointing { get; set; }
+    }
+
+    public class Landmark
+    {
+        public float Y { get; set; }
     }
 }

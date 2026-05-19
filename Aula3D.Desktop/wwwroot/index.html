@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aula3D Desktop</title>
+    <!-- Import Google model-viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        #app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        model-viewer {
+            width: 100%;
+            flex-grow: 1;
+            background-color: #2b2b2b;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">Loading...</div>
+
+    <script src="_framework/blazor.webview.js"></script>
+    <script>
+        // Função para carregar modelo dinamicamente
+        window.loadModel = function (fileUrl) {
+            const viewer = document.getElementById('main-viewer');
+            if (viewer) {
+                viewer.src = fileUrl;
+            }
+        };
+
+        // Função para atualizar Rotação
+        window.updateModelRotation = function (theta, phi, z) {
+            const viewer = document.getElementById('main-viewer');
+            if (viewer) {
+                // Model-viewer: Orbitamos a câmera no lugar de rotacionar a malha!
+                // Isso previne que modelos com o pivô no "pé" girem como um pêndulo.
+                viewer.cameraOrbit = `${theta}rad ${phi}rad auto`;
+            }
+        };
+
+        let initialTarget = null;
+
+        // Função para atualizar Pan (Translação / Target)
+        window.updateModelPan = function (panX, panY, panZ) {
+            const viewer = document.getElementById('main-viewer');
+            if (viewer && viewer.getCameraTarget) {
+                if (!initialTarget) {
+                    initialTarget = viewer.getCameraTarget(); 
+                }
+                // Aplica o deslocamento da mão somado ao centro natural do objeto
+                let newX = initialTarget.x + panX;
+                let newY = initialTarget.y + panY;
+                let newZ = initialTarget.z + panZ;
+                viewer.cameraTarget = `${newX}m ${newY}m ${newZ}m`;
+            }
+        };
+
+        // Função para atualizar Zoom (Escala)
+        window.updateModelScale = function (s) {
+            const viewer = document.getElementById('main-viewer');
+            if (viewer) {
+                viewer.scale = `${s} ${s} ${s}`;
+            }
+        };
+    </script>
+</body>
+</html>
