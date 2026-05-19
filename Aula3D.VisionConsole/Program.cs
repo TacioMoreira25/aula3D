@@ -1,74 +1,57 @@
-using System;
-using OpenCvSharp;
 using Aula3D.VisionCore;
+using System;
+using System.IO;
+using System.Diagnostics;
 
-namespace Aula3D.VisionConsole
+// 1. Criação dos arquivos de telemetria
+File.WriteAllText("dados_fps_hibrida.csv", "Tempo;FPS\n");
+File.WriteAllText("dados_estabilidade.csv", "Tempo;X_Bruto;X_Suavizado\n");
+
+var facade = new GestorDeVisaoFacade();
+facade.Iniciar();
+
+Console.WriteLine("Cérebro PDI Híbrido iniciado. Aguardando MediaPipe via UDP...\nPressione ESC para sair e gerar os gráficos.\n");
+
+var cronometro = Stopwatch.StartNew();
+float xSuavizado = 0f; // Variável de estado para o filtro matemático
+
+while (true)
 {
-    /// <summary>
-    /// Ambiente de testes isolado.
-    /// Consome a mesma GestorDeVisaoFacade utilizada pelo Godot para garantir
-    /// que o comportamento testado no Console será idêntico ao do App 3D.
-    /// </summary>
-    class Program
+    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+        break;
+
+    if (facade.LatestHands.Count > 0)
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Iniciando rastreamento de visão avançado (Neural + Kalman)...");
-            Console.WriteLine("Pressione 'ESC' na janela do vídeo para encerrar.");
-            Console.WriteLine("Pressione '1' (Câmera Original) ou '2' (Máscara Neural) para trocar as visualizações.");
-            Console.WriteLine("Pressione 'A' para Salvar Assinatura Mão Aberta ou 'F' para Mão Fechada.");
+        var h = facade.LatestHands[0];
+        
+        // --- EXTRAÇÃO PARA O GRÁFICO 3 (ESTABILIDADE LERP) ---
+        float xBruto = h.CenterX;
+        
+        // Aplicação do Filtro Passa-Baixa (Lerp com fator de 0.15f)
+        if (xSuavizado == 0f) xSuavizado = xBruto; // Previne salto no primeiro frame
+        xSuavizado = xSuavizado + (xBruto - xSuavizado) * 0.15f;
 
-            // Instancia e inicia o Facade exatamente como o Objeto3D no Godot faz
-            using var facade = new GestorDeVisaoFacade();
-            facade.Iniciar();
+        // Grava no CSV o ruído da rede vs a correção do C#
+        File.AppendAllText("dados_estabilidade.csv", $"{DateTime.Now:HH:mm:ss.fff};{xBruto:F2};{xSuavizado:F2}\n");
 
-            while (true)
-            {
-                // Verifica se já temos um frame processado disponivel
-                if (facade.FrameBuffer != null && facade.FrameBuffer.Length > 0)
-                {
-                    // Decodifica o JPG em tempo real simulando a leitura do Godot
-                    using Mat frame = Cv2.ImDecode(facade.FrameBuffer, ImreadModes.Color);
-                    if (!frame.Empty())
-                    {
-                        Cv2.ImShow("Controle 3D - Visao Computacional", frame);
-                    }
-                }
-
-                // Loga as informações tratadas no console
-                if (facade.HandDetected)
-                {
-                    string gesto = facade.IsHandOpen ? "ABERTA " : "FECHADA";
-                    Console.Write($"\r[{gesto}] X: {facade.X,-5:F1} Y: {facade.Y,-5:F1} Z: {facade.Z,-5:F2} | FPS: {facade.CurrentFPS} | RAM: {facade.CurrentRAM}MB      ");
-                }
-                else
-                {
-                    Console.Write($"\r[SEM MAO] FPS: {facade.CurrentFPS} | RAM: {facade.CurrentRAM}MB                                              ");
-                }
-
-                // Inputs do teclado para testes
-                int key = Cv2.WaitKey(30);
-                if (key == 27) break; // ESC
-                
-                if (key == '1') facade.DebugViewIndex = 0;
-                if (key == '2') facade.DebugViewIndex = 1;
-                
-                // Opções para treinar classificador de forma simplificada no console
-                if (key == 'a' || key == 'A')
-                {
-                    facade.SalvarAssinaturaAberta();
-                    Console.WriteLine("\n[INFO] Assinatura de Mão ABERTA salva!");
-                }
-                if (key == 'f' || key == 'F')
-                {
-                    facade.SalvarAssinaturaFechada();
-                    Console.WriteLine("\n[INFO] Assinatura de Mão FECHADA salva!");
-                }
-            }
-
-            Console.WriteLine("\nEncerrando provedor de visão...");
-            facade.Parar();
-            Cv2.DestroyAllWindows();
-        }
+        Console.Write($"\rMãos: {facade.LatestHands.Count} | X_Rede: {xBruto:F1} | X_Filtro: {xSuavizado:F1} | Aberta? {h.IsOpen} | FPS UDP: {facade.CurrentFPS}    ");
     }
+    else
+    {
+        Console.Write($"\rNenhuma mão detectada. FPS UDP: {facade.CurrentFPS}                                ");
+    }
+
+    // --- EXTRAÇÃO PARA O GRÁFICO 2 (DESEMPENHO/FPS) ---
+    // Grava a taxa de pacotes processados pelo Facade a cada segundo
+    if (cronometro.ElapsedMilliseconds >= 1000)
+    {
+        File.AppendAllText("dados_fps_hibrida.csv", $"{DateTime.Now:HH:mm:ss};{facade.CurrentFPS}\n");
+        cronometro.Restart();
+    }
+
+    System.Threading.Thread.Sleep(50); // Alivia a thread do Console
 }
+
+facade.Parar();
+Console.WriteLine("\n\nEncerrando serviços... Teste concluído!");
+Console.WriteLine("Os arquivos 'dados_fps_hibrida.csv' e 'dados_estabilidade.csv' estão na pasta de execução.");
